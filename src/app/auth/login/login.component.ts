@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observer } from 'rxjs';
 
 import Swal from 'sweetalert2';
 
@@ -27,7 +26,8 @@ export class LoginComponent implements OnInit {
 
   constructor( private router: Router,
                private fb: FormBuilder,
-               private usuarioService: UsuarioService ) { }
+               private usuarioService: UsuarioService,
+               private ngZone: NgZone ) { }
 
 
   ngOnInit(): void {
@@ -37,6 +37,7 @@ export class LoginComponent implements OnInit {
 
   login(): void {
 
+    // tslint:disable-next-line: deprecation
     this.usuarioService.login( this.loginForm.value ).subscribe(
       resp => {
         if ( this.loginForm.get('remember').value ) {
@@ -65,18 +66,10 @@ export class LoginComponent implements OnInit {
     this.startApp();
   }
 
-  startApp(): void {
+  async startApp(): Promise<void> {
 
-    gapi.load('auth2', () => {
-
-      this.auth2 = gapi.auth2.init({
-        client_id: '1082796497580-v5qmqehc6c8v8367sc47faf59fdbbcbp.apps.googleusercontent.com',
-        cookiepolicy: 'single_host_origin',
-      });
-
-      this.attachSignin( document.getElementById( 'my-signin2' ) );
-
-    });
+    this.auth2 = await this.usuarioService.googleInit();
+    this.attachSignin( document.getElementById( 'my-signin2' ) );
 
   }
 
@@ -86,11 +79,10 @@ export class LoginComponent implements OnInit {
         ( googleUser ) => {
           const id_token = googleUser.getAuthResponse().id_token;
 
-          this.usuarioService.loginGoogle( id_token ).subscribe({
-            next: resp => this.router.navigateByUrl('/'),
-            error: console.log,
-            complete: console.log
-          });
+          // tslint:disable-next-line: deprecation
+          this.usuarioService.loginGoogle( id_token ).subscribe(
+            resp => this.ngZone.run( () => this.router.navigateByUrl('/') ),
+          );
 
         }, ( error ) => {
           alert(JSON.stringify(error, undefined, 2));
