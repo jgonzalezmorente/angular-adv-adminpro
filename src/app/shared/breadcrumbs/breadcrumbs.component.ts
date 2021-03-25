@@ -18,10 +18,12 @@ export class BreadcrumbsComponent implements OnDestroy {
   constructor( private router: Router ) {
 
     this.tituloSubs$ = this.getArgumentosRuta()
-    .subscribe( ({ titulo }) => {
-      this.titulo = titulo;
-      document.title = `AdminPro - ${ titulo }`;
-    });
+    // tslint:disable-next-line: deprecation
+    .subscribe({
+      next: ({ titulo }) => {
+        this.titulo = titulo;
+        document.title = `AdminPro - ${ titulo }`;
+      }});
 
   }
   ngOnDestroy(): void {
