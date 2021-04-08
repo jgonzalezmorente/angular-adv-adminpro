@@ -1,9 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
+import { Router } from '@angular/router';
+
 import { environment } from '../../environments/environment';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
+
+import { CargarUsuario } from '../interfaces/cargar-usuarios.interface';
 
 import { LoginForm } from '../interfaces/login-form.interface';
 import { RegisterForm } from '../interfaces/register-form.interface';
@@ -40,6 +43,15 @@ export class UsuarioService {
   get uid(): string {
     return this.usuario.uid || '';
   }
+
+  get headers(): any {
+    return {
+      headers: {
+        'x-token': this.token
+      }
+    };
+  }
+
 
 
   googleInit(): Promise<any> {
@@ -113,11 +125,7 @@ export class UsuarioService {
       role: this.usuario.role
     };
 
-    return this.http.put( `${ base_url }/usuarios/${ this.uid }`, data, {
-      headers: {
-        'x-token': this.token
-      }
-    });
+    return this.http.put( `${ base_url }/usuarios/${ this.uid }`, data, this.headers );
 
   }
 
@@ -136,6 +144,48 @@ export class UsuarioService {
         localStorage.setItem( 'token', resp.token );
       })
     );
+
+  }
+
+  cargarUsuarios( desde: number = 0 ): Observable<CargarUsuario> {
+
+    const url = `${ base_url }/usuarios?desde=${ desde }`;
+
+    return this.http.get<CargarUsuario>( url, this.headers ).pipe(
+
+      map( (resp: any) => {
+        const usuarios = resp.usuarios.map( user => new Usuario(
+          user.nombre,
+          user.email,
+          '',
+          user.img,
+          user.google,
+          user.role,
+          user.uid ));
+
+        return {
+          total: resp.total,
+          usuarios
+        };
+
+      })
+    );
+
+  }
+
+  eliminarUsuario( usuario: Usuario ): Observable<any> {
+
+    // usuarios/6001e5fbda756849081b4dd0
+    const url = `${ base_url }/usuarios/${ usuario.uid }`;
+
+    return this.http.delete( url, this.headers );
+
+  }
+
+
+  guardarUsuario( usuario ): Observable<any> {
+
+    return this.http.put( `${ base_url }/usuarios/${ usuario.uid }`, usuario, this.headers );
 
   }
 }
