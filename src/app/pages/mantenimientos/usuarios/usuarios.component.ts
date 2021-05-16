@@ -84,7 +84,6 @@ export class UsuariosComponent implements OnInit, OnDestroy {
       next: resultados => this.usuarios = resultados
     });
 
-    console.log(termino);
   }
 
   eliminarUsuario( usuario: Usuario ): void {
@@ -128,8 +127,9 @@ export class UsuariosComponent implements OnInit, OnDestroy {
 
 
   abrirModal( usuario: Usuario ): void {
-    console.log(usuario.imagenUrl);
+
     this.modalImagenService.abrirModal( 'usuarios', usuario.uid, usuario.img );
+
   }
 
 

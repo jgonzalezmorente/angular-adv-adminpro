@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { Usuario } from '../models/usuario.model';
+import { Hospital } from '../models/hospital.model';
+import { Medico } from '../models/medico.model';
 
 
 const base_url = environment.base_url;
@@ -41,6 +43,19 @@ export class BusquedasService {
 
   }
 
+
+  private transformarHospitales( resultados: any[] ): Hospital[] {
+
+    return resultados;
+
+  }
+
+  private transformarMedicos( resultados: any[] ): Medico[] {
+
+    return resultados;
+
+  }
+
   buscar( tipo: 'usuarios' | 'medicos' | 'hospitales',
           termino: string ): Observable <any> {
 
@@ -51,6 +66,12 @@ export class BusquedasService {
         switch ( tipo ) {
           case 'usuarios':
             return this.transformarUsuarios( resp.resultados );
+
+          case 'hospitales':
+            return this.transformarHospitales( resp.resultados );
+
+          case 'medicos':
+            return this.transformarMedicos( resp.resultados );
 
           default:
             return [];
