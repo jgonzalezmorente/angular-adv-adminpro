@@ -44,6 +44,10 @@ export class UsuarioService {
     return this.usuario.uid || '';
   }
 
+  get role(): 'ADMIN_ROLE' | 'USER_ROLE' {
+    return this.usuario.role;
+  }
+
   get headers(): any {
     return {
       headers: {
@@ -71,9 +75,17 @@ export class UsuarioService {
     });
   }
 
+  guardarLocalStorage( token: string, menu: any ): void {
+
+    localStorage.setItem( 'token', token );
+    localStorage.setItem( 'menu', JSON.stringify( menu ) );
+
+  }
+
 
   logout(): void {
     localStorage.removeItem( 'token' );
+    localStorage.removeItem( 'menu' );
 
     this.auth2.signOut().then( () => {
 
@@ -97,7 +109,9 @@ export class UsuarioService {
 
         const { role, google, nombre, email, img = '', uid } = resp.usuario;
         this.usuario = new Usuario( nombre, email, '', img, google, role, uid );
-        localStorage.setItem( 'token', resp.token );
+
+        this.guardarLocalStorage( resp.token, resp.menu );
+
         return true;
 
       }),
@@ -110,9 +124,8 @@ export class UsuarioService {
   crearUsuario( formData: RegisterForm ): Observable<any> {
 
     return this.http.post( `${ base_url }/usuarios`, formData ).pipe(
-      tap( resp => {
-        localStorage.setItem( 'token', resp.token );
-      })
+      tap( resp => this.guardarLocalStorage( resp.token, resp.menu )
+      )
     );
 
   }
@@ -132,7 +145,7 @@ export class UsuarioService {
   login( formData: LoginForm ): Observable<any> {
 
     return this.http.post( `${ base_url }/login`, formData ).pipe(
-      tap( resp => localStorage.setItem( 'token', resp.token ) )
+      tap( resp => this.guardarLocalStorage( resp.token, resp.menu ) )
     );
 
   }
